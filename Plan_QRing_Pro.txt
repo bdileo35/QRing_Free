@@ -1,0 +1,59 @@
+PLAN QRING PRO
+====================
+
+1. FLUJO OPERATIVO PROPUESTO
+----------------------------
+1. El visitante escanea el QR (contiene una URL con un ID único generado a partir de la dirección).
+2. La URL lleva a un backend (web/app intermedia) que consulta una base de datos.
+3. El sistema muestra los pisos y departamentos que usan la app en ese domicilio (solo los que tienen versión Pro activa).
+4. El visitante elige el dpto y se inicia una llamada (voz o video) a la app del usuario correspondiente, sin exponer su número real.
+
+2. COMPONENTES TÉCNICOS Y HERRAMIENTAS GRATUITAS
+-------------------------------------------------
+Frontend:
+- App React Native para usuarios (inquilinos/propietarios).
+- Web simple para visitantes (opcional).
+
+Backend:
+- Base de datos gratuita: Firebase (Firestore) o Supabase.
+- Servidor backend: Cloud Functions (Firebase) o Vercel/Netlify Functions.
+- Autenticación: Firebase Auth.
+
+Comunicación (llamadas y videollamadas):
+- WebRTC (gratis, estándar para llamadas y videollamadas P2P).
+- Servidor de señalización: WebSocket en Heroku, Vercel, etc.
+- Notificaciones push: Firebase Cloud Messaging.
+
+Pagos:
+- Stripe o MercadoPago (APIs gratuitas, solo cobran comisión por transacción).
+
+3. VIABILIDAD Y DESAFÍOS
+------------------------
+- Todo es viable usando servicios gratuitos para MVP/prototipo y bajo volumen.
+- WebRTC es gratis, pero para producción y muchos usuarios puede requerir servidores TURN/STUN pagos.
+- El backend tipo DNS es simple de implementar con Firebase/Supabase.
+- El algoritmo para el ID puede ser un hash de la dirección normalizada.
+- Listar solo usuarios Pro es fácil de filtrar en la base de datos.
+- Escalabilidad: para pocos usuarios, todo es gratis; si crece, algunos servicios pueden requerir upgrade.
+
+4. FLUJO DETALLADO
+------------------
+1. El usuario Pro registra su domicilio y paga.
+2. El sistema genera un ID único para ese domicilio/dpto.
+3. Se imprime un QR con la URL: https://qring.app/visit?id=ID_GENERADO
+4. El visitante escanea el QR y accede a la web/app:
+   - El backend busca el ID en la base de datos.
+   - Muestra los pisos/dptos disponibles (Pro).
+   - El visitante elige a quién llamar.
+5. Se inicia la llamada (voz/video) vía WebRTC:
+   - El backend notifica al usuario (push).
+   - El usuario abre la app y atiende la llamada.
+   - La comunicación es directa, sin exponer datos personales.
+
+5. SIGUIENTE PASO
+-----------------
+- ¿Armar un diagrama visual del flujo?
+- ¿Detallar la arquitectura técnica?
+- ¿Armar el algoritmo para el ID y la estructura de la base de datos?
+
+¡Decime por dónde seguimos y lo desarrollo en detalle! 
