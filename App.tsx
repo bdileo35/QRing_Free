@@ -1,20 +1,37 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { StatusBar } from 'react-native';
+import TabNavigator from './src/navigation/TabNavigator';
+import CustomSplash from './src/components/CustomSplash';
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
+  const [appIsReady, setAppIsReady] = useState(false);
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Simular tiempo de carga
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setAppIsReady(true);
+      }
+    }
+
+    prepare();
+  }, []);
+
+  return (
+    <>
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+      {!appIsReady ? (
+        <CustomSplash />
+      ) : (
+        <NavigationContainer>
+          <TabNavigator />
+        </NavigationContainer>
+      )}
+    </>
+  );
+} 

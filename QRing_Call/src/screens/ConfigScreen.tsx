@@ -21,8 +21,8 @@ export default function ConfigScreen() {
           <View style={styles.groupContainer}>
             <View style={styles.inputPhone} />
           </View>
-        </View>
-        
+          </View>
+
         <View style={styles.groupWrapper}>
           <View style={styles.labelWrapper}>
             <View style={styles.directionRow}>
@@ -55,7 +55,7 @@ export default function ConfigScreen() {
               </View>
             </View>
           </View>
-        </View>
+          </View>
 
         <View style={styles.buttonRow}>
           <View style={[styles.actionButton, styles.resetButton]}>

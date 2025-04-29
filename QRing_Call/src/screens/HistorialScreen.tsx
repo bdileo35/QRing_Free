@@ -11,19 +11,19 @@ export default function HistorialScreen() {
       </View>
     </View>
   );
-}
+    }
 
-const styles = StyleSheet.create({
+  const styles = StyleSheet.create({
   root: {
-    flex: 1,
+      flex: 1,
     backgroundColor: '#EAF6FF',
-  },
+    },
   contentContainer: {
-    flex: 1,
+      flex: 1,
     margin: 24,
     backgroundColor: '#fff',
     borderRadius: 24,
-    alignItems: 'center',
+      alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -36,8 +36,8 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#007AFF',
-    textAlign: 'center',
+      textAlign: 'center',
     marginBottom: 8,
     marginTop: 0,
-  },
-}); 
+    },
+  });
