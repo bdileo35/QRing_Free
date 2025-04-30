@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Share } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Share, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Header from '../components/Header';
 import { Checkbox } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -13,7 +14,13 @@ interface AddressData {
   apartment: string;
 }
 
+// Definir tipo para la navegación (ajustar según tu RootStackParamList si la tienes)
+type ConfigScreenNavigationProp = {
+  replace: (name: 'Main') => void;
+};
+
 export default function ConfigScreen() {
+  const navigation = useNavigation<ConfigScreenNavigationProp>();
   const [showInLabel, setShowInLabel] = useState(false);
   const [phone, setPhone] = useState('');
   const [isValidPhone, setIsValidPhone] = useState(false);
@@ -76,30 +83,35 @@ export default function ConfigScreen() {
     loadConfig();
   }, []);
 
-  // Guardar automáticamente cuando el checkbox o la dirección cambien
+  // Guardar automáticamente: Ajustar para guardar siempre la dirección completa
   useEffect(() => {
-    const saveCheckboxState = async () => {
+    // Solo guardar si el teléfono es válido para evitar guardados incompletos
+    if (!isValidPhone) return;
+    
+    const autoSaveConfig = async () => {
       try {
+        // Guardar siempre la dirección completa, showInLabel controla visibilidad
         const configData = {
           phone: phone.replace(/[^\d]/g, ''),
-          showInLabel,
-          address: {
-            street: showInLabel ? street : '',
-            number: showInLabel ? number : '',
-            floor: showInLabel ? floor : '',
-            apartment: showInLabel ? apartment : '',
+          showInLabel, // Guardar el estado del checkbox
+          address: {  // Guardar siempre los datos de dirección
+            street: street,
+            number: number,
+            floor: floor,
+            apartment: apartment,
           },
         };
 
         await AsyncStorage.setItem('@qring_config', JSON.stringify(configData));
-        console.log('Datos actualizados automáticamente:', configData);
+        console.log('Datos actualizados automáticamente (auto-save):', configData);
       } catch (error) {
-        console.error('Error actualizando datos automáticamente:', error);
+        console.error('Error actualizando datos automáticamente (auto-save):', error);
       }
     };
 
-    saveCheckboxState();
-  }, [showInLabel, street, number, floor, apartment]);
+    // Considerar un debounce si esto causa muchos guardados
+    autoSaveConfig(); 
+  }, [isValidPhone, phone, showInLabel, street, number, floor, apartment]); // Depender de todos los campos
 
   const handleClear = () => {
     setPhone('');
@@ -111,44 +123,46 @@ export default function ConfigScreen() {
   };
 
   const handleSave = async () => {
-    try {
-      if (showInLabel && (!street || !number)) {
-        Alert.alert(
-          "Error",
-          "Debe completar la dirección para mostrarla en la etiqueta",
-          [{ text: "OK" }],
-          { cancelable: false }
-        );
-        return;
-      }
+    // La validación de isValidPhone ya deshabilita el botón
+    // La validación de dirección si showInLabel es true se mantiene:
+    if (showInLabel && (!street || !number)) {
+      Alert.alert("Error", "Calle y Altura son obligatorios para mostrar la dirección en la etiqueta.", [{ text: "OK" }]);
+      return;
+    }
 
+    try {
+      // Construir objeto a guardar (guardando siempre la dirección completa)
       const configData = {
         phone: phone.replace(/[^\d]/g, ''),
-        showInLabel,
-        address: {
-          street: showInLabel ? street : '',
-          number: showInLabel ? number : '',
-          floor: showInLabel ? floor : '',
-          apartment: showInLabel ? apartment : '',
+        showInLabel, // Guardar estado del checkbox
+        address: { // Guardar siempre todos los campos de dirección
+          street: street,
+          number: number,
+          floor: floor,
+          apartment: apartment,
         },
       };
 
       await AsyncStorage.setItem('@qring_config', JSON.stringify(configData));
-      console.log('Datos guardados:', configData);
+      console.log('Datos guardados manualmente:', configData);
+
+      // Mostrar alerta y LUEGO navegar
       Alert.alert(
         "¡Éxito!",
         "Configuración guardada correctamente",
-        [{ text: "OK" }],
+        [
+          {
+            text: "OK", 
+            // Navegar a Main al presionar OK en la alerta
+            onPress: () => navigation.replace('Main') 
+          }
+        ],
         { cancelable: false }
       );
+
     } catch (error) {
       console.error('Error guardando configuración:', error);
-      Alert.alert(
-        "Error",
-        "No se pudo guardar la configuración",
-        [{ text: "OK" }],
-        { cancelable: false }
-      );
+      Alert.alert("Error", "No se pudo guardar la configuración", [{ text: "OK" }]);
     }
   };
 
@@ -189,139 +203,141 @@ export default function ConfigScreen() {
   return (
     <View style={styles.root}>
       <Header />
-      <View style={styles.contentContainer}>
-        <Text style={styles.title}>Configuración del Timbre</Text>
-        
-        <View style={styles.qrContainer}>
-          <QRGenerator 
-            value={isValidPhone ? `https://wa.me/549${phone.replace(/[^\d]/g, '')}` : 'invalid'} 
-            size={220}
-          />
-          {!isValidPhone && (
-            <View style={styles.qrOverlay} />
-          )}
-        </View>
-        
-        <View style={styles.groupWrapper}>
-          <View style={styles.labelWrapper}>
-            <Text style={styles.label}>WhatsApp</Text>
-          </View>
-          <View style={styles.groupContainer}>
-            <TextInput
-              style={[
-                styles.inputPhone,
-                !isValidPhone && phone.length > 0 && styles.inputError
-              ]}
-              value={phone}
-              onChangeText={handlePhoneChange}
-              placeholder="11 2222-3333"
-              placeholderTextColor="#B0B0B0"
-              keyboardType="phone-pad"
-              maxLength={12}
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.contentContainer}>
+          <Text style={styles.title}>Configuración del Timbre</Text>
+          
+          <View style={styles.qrContainer}>
+            <QRGenerator 
+              value={isValidPhone ? `https://wa.me/549${phone.replace(/[^\d]/g, '')}` : 'invalid'} 
+              size={220}
             />
+            {!isValidPhone && (
+              <View style={styles.qrOverlay} />
+            )}
           </View>
-          </View>
-
-        <View style={styles.groupWrapper}>
-          <View style={styles.labelWrapper}>
-            <View style={styles.directionRow}>
-              <Text style={[styles.label, { marginRight: 8 }]}>Dirección</Text>
-              <Checkbox.Android
-                status={showInLabel ? 'checked' : 'unchecked'}
-                onPress={() => setShowInLabel(!showInLabel)}
-                color="#007AFF"
+          
+          <View style={styles.groupWrapper}>
+            <View style={styles.labelWrapper}>
+              <Text style={styles.label}>WhatsApp</Text>
+            </View>
+            <View style={styles.groupContainer}>
+              <TextInput
+                style={[
+                  styles.inputPhone,
+                  !isValidPhone && phone.length > 0 && styles.inputError
+                ]}
+                value={phone}
+                onChangeText={handlePhoneChange}
+                placeholder="11 2222-3333"
+                placeholderTextColor="#B0B0B0"
+                keyboardType="phone-pad"
+                maxLength={12}
               />
-              <Text style={styles.checkLabel}>Mostrar en la etiqueta</Text>
             </View>
           </View>
-          <View style={[styles.groupContainer, styles.addressGroupContainer]}>
-            <View style={styles.addressContent}>
-              <View style={styles.addressInputsContainer}>
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.label, styles.sublabel]}>Calle</Text>
-                  <TextInput
-                    style={styles.inputAddress}
-                    value={street}
-                    onChangeText={setStreet}
-                    placeholder="Nombre de la calle"
-                    placeholderTextColor="#B0B0B0"
-                  />
-                </View>
-                <View style={styles.rowInputs}>
-                  <View style={styles.inputGroupHalf}>
-                    <Text style={[styles.label, styles.sublabel]}>Altura</Text>
+
+          <View style={styles.groupWrapper}>
+            <View style={styles.labelWrapper}>
+              <View style={styles.directionRow}>
+                <Text style={[styles.label, { marginRight: 8 }]}>Dirección</Text>
+                <Checkbox.Android
+                  status={showInLabel ? 'checked' : 'unchecked'}
+                  onPress={() => setShowInLabel(!showInLabel)}
+                  color="#007AFF"
+                />
+                <Text style={styles.checkLabel}>Mostrar en la etiqueta</Text>
+              </View>
+            </View>
+            <View style={[styles.groupContainer, styles.addressGroupContainer]}>
+              <View style={styles.addressContent}>
+                <View style={styles.addressInputsContainer}>
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.label, styles.sublabel]}>Calle</Text>
                     <TextInput
-                      style={styles.inputSmall}
-                      value={number}
-                      onChangeText={handleNumberChange}
-                      placeholder="123"
+                      style={styles.inputAddress}
+                      value={street}
+                      onChangeText={setStreet}
+                      placeholder="Nombre de la calle"
                       placeholderTextColor="#B0B0B0"
-                      keyboardType="number-pad"
-                      maxLength={5}
                     />
                   </View>
-                  <View style={[styles.inputGroupHalf, { flexDirection: 'row', gap: 8 }]}>
-                    <View style={styles.inputGroupQuarter}>
-                      <Text style={[styles.label, styles.sublabel]}>Piso</Text>
+                  <View style={styles.rowInputs}>
+                    <View style={styles.inputGroupHalf}>
+                      <Text style={[styles.label, styles.sublabel]}>Altura</Text>
                       <TextInput
-                        style={styles.inputTiny}
-                        value={floor}
-                        onChangeText={handleFloorChange}
-                        placeholder="1"
+                        style={styles.inputSmall}
+                        value={number}
+                        onChangeText={handleNumberChange}
+                        placeholder="123"
                         placeholderTextColor="#B0B0B0"
                         keyboardType="number-pad"
-                        maxLength={2}
+                        maxLength={5}
                       />
                     </View>
-                    <View style={styles.inputGroupQuarter}>
-                    <Text style={[styles.label, styles.sublabel]}>Dpto</Text>
-                      <TextInput
-                        style={styles.inputTiny}
-                        value={apartment}
-                        onChangeText={setApartment}
-                        placeholder="A"
-                        placeholderTextColor="#B0B0B0"
-                      />
+                    <View style={[styles.inputGroupHalf, { flexDirection: 'row', gap: 8 }]}>
+                      <View style={styles.inputGroupQuarter}>
+                        <Text style={[styles.label, styles.sublabel]}>Piso</Text>
+                        <TextInput
+                          style={styles.inputTiny}
+                          value={floor}
+                          onChangeText={handleFloorChange}
+                          placeholder="1"
+                          placeholderTextColor="#B0B0B0"
+                          keyboardType="number-pad"
+                          maxLength={2}
+                        />
+                      </View>
+                      <View style={styles.inputGroupQuarter}>
+                      <Text style={[styles.label, styles.sublabel]}>Dpto</Text>
+                        <TextInput
+                          style={styles.inputTiny}
+                          value={apartment}
+                          onChangeText={setApartment}
+                          placeholder="A"
+                          placeholderTextColor="#B0B0B0"
+                        />
+                      </View>
                     </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.button} onPress={handleClear}>
+              <Icon name="eraser" size={24} color="#007AFF" />
+              <Text style={styles.buttonText}>Limpiar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.button, !isValidPhone && styles.buttonDisabled]} 
+              onPress={handleSave}
+              disabled={!isValidPhone}
+            >
+              <Icon name="content-save" size={24} color={isValidPhone ? "#007AFF" : "#B0B0B0"} />
+              <Text style={[styles.buttonText, !isValidPhone && styles.buttonTextDisabled]}>Guardar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.button, !isValidPhone && styles.buttonDisabled]}
+              onPress={handleShare}
+              disabled={!isValidPhone}
+            >
+              <Icon name="share-variant" size={24} color={isValidPhone ? "#007AFF" : "#B0B0B0"} />
+              <Text style={[styles.buttonText, !isValidPhone && styles.buttonTextDisabled]}>Compartir</Text>
+            </TouchableOpacity>
           </View>
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={handleClear}>
-            <Icon name="eraser" size={24} color="#007AFF" />
-            <Text style={styles.buttonText}>Limpiar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.button, !isValidPhone && styles.buttonDisabled]} 
-            onPress={handleSave}
-            disabled={!isValidPhone}
-          >
-            <Icon name="content-save" size={24} color={isValidPhone ? "#007AFF" : "#B0B0B0"} />
-            <Text style={[styles.buttonText, !isValidPhone && styles.buttonTextDisabled]}>Guardar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.button, !isValidPhone && styles.buttonDisabled]}
-            onPress={handleShare}
-            disabled={!isValidPhone}
-          >
-            <Icon name="share-variant" size={24} color={isValidPhone ? "#007AFF" : "#B0B0B0"} />
-            <Text style={[styles.buttonText, !isValidPhone && styles.buttonTextDisabled]}>Compartir</Text>
-          </TouchableOpacity>
+          <View style={styles.instructionContainer}>
+            <Text style={styles.instructionTitle}>💡 Después de configurar tu QRing:</Text>
+            <Text style={styles.instructionText}>
+              • Ingresa tu número de WhatsApp completo{'\n'}
+              • Agrega tu dirección si deseas que aparezca{'\n'}
+              • Guarda los cambios y comparte tu QR
+            </Text>
+          </View>
         </View>
-
-        <View style={styles.instructionContainer}>
-          <Text style={styles.instructionTitle}>💡 Después de configurar tu QRing:</Text>
-          <Text style={styles.instructionText}>
-            • Ingresa tu número de WhatsApp completo{'\n'}
-            • Agrega tu dirección si deseas que aparezca{'\n'}
-            • Guarda los cambios y comparte tu QR
-          </Text>
-        </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -331,8 +347,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#EAF6FF'
   },
+  scrollContainer: {
+    flexGrow: 1, 
+    justifyContent: 'center', 
+  },
   contentContainer: {
-    flex: 1,
     margin: 24,
     backgroundColor: '#fff',
     borderRadius: 24,
@@ -343,6 +362,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     paddingTop: 36,
+    paddingBottom: 24,
     justifyContent: 'flex-start'
   },
   title: {
@@ -377,24 +397,24 @@ const styles = StyleSheet.create({
   },
   groupWrapper: {
     width: '90%',
-    marginTop: 16
+    marginTop: 24
   },
   labelWrapper: {
     position: 'absolute',
-    top: -8,
+    top: -10,
     left: 16,
     zIndex: 1,
     backgroundColor: '#fff',
-    paddingHorizontal: 8
+    paddingHorizontal: 8,
   },
   groupContainer: {
     width: '100%',
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 8,
-    paddingTop: 12,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    paddingTop: 16,
+    borderWidth: 1.5,
+    borderColor: '#B0B0B0',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -449,10 +469,11 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     marginLeft: 0,
     position: 'absolute',
-    top: -8,
+    top: -10,
+    left: 8,
     backgroundColor: '#fff',
     paddingHorizontal: 4,
-    zIndex: 1
+    zIndex: 1,
   },
   inputAddress: {
     width: '100%',

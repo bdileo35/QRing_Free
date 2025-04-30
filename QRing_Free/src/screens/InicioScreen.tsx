@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, Alert, Share, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from '../components/Header';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { QRGenerator } from '../components/common/QRGenerator';
 import { useFocusEffect } from '@react-navigation/native';
 import ViewShot from 'react-native-view-shot'; // Biblioteca para capturar la vista
@@ -74,92 +75,136 @@ export default function InicioScreen() {
     }
   };
 
+  // Nueva función para compartir la etiqueta
+  const shareLabel = async () => {
+    if (viewShotRef.current && typeof viewShotRef.current.capture === 'function') {
+      try {
+        const uri = await viewShotRef.current.capture();
+        await Share.share({
+          url: uri, // En Android, compartir la URI directamente funciona para imágenes
+          title: 'Etiqueta QRing',
+          message: '¡Mira mi etiqueta QRing!', // Mensaje opcional
+        });
+      } catch (error) {
+        console.error('Error compartiendo la etiqueta:', error);
+        Alert.alert('Error', 'Ocurrió un error al compartir la etiqueta.');
+      }
+    } else {
+      Alert.alert('Error', 'No se pudo capturar la etiqueta para compartir.');
+      console.error('Error compartiendo la etiqueta: viewShotRef.current o capture no están disponibles');
+    }
+  };
+
   return (
     <View style={styles.root}>
       <Header />
-      <LinearGradient
-        colors={["#e3f0ff", "#eaf6ff", "#ffffff"]}
-        style={styles.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        <View style={styles.contentContainer}>
-          <Text style={styles.title}>
-            <Text style={{color: '#007AFF'}}>QR</Text>
-            <Text style={{color: '#000'}}>ing</Text>
-          </Text>
-          <Text style={styles.subtitle}>Tu timbre inteligente</Text>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <LinearGradient
+          colors={["#e3f0ff", "#eaf6ff", "#ffffff"]}
+          style={styles.gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <View style={styles.contentContainer}>
+            <Text style={styles.title}>
+              <Text style={{color: '#007AFF'}}>QR</Text>
+              <Text style={{color: '#000'}}>ing</Text>
+            </Text>
+            <Text style={styles.subtitle}>Tu timbre inteligente</Text>
 
-          {/* Contenedor de número y estado */}
-          <View style={{width: '80%', alignItems: 'center', marginBottom: 15, alignSelf: 'center', marginTop: 11}}>
-            <View style={{position: 'absolute', top: -8, left: 18, zIndex: 2, backgroundColor: '#fff', paddingHorizontal: 10}}>
-              <Text style={{color: '#27ae60', fontWeight: 'bold', fontSize: 14}}>● ACTIVADO</Text>
-            </View>
-            <View style={{borderWidth: 2, borderColor: '#27ae60', borderRadius: 16, paddingVertical: 18, paddingHorizontal: 28, width: '100%', backgroundColor: '#fff', alignItems: 'center'}}>
-              <Text style={{fontSize: 40, fontWeight: 'bold', color: '#222', letterSpacing: 1}}>{phone || 'Sin número'}</Text>
-            </View>
-          </View>
-
-          {/* Tarjeta de timbre */}
-          <View style={{backgroundColor: '#fff', borderRadius: 24, padding: 12, alignItems: 'center', marginBottom: 18, shadowColor: '#000', shadowOffset: {width: 0, height: 2}, shadowOpacity: 0.08, shadowRadius: 8, elevation: 4, width: '80%', alignSelf: 'center'}}>
-            <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 8}}>
-              <Ionicons name="notifications" size={28} color="#007AFF" />
-              <Text style={{color: '#007AFF', fontWeight: 'bold', fontSize: 36, marginHorizontal: 8}}>TIMBRE</Text>
-              <Ionicons name="notifications" size={28} color="#007AFF" />
-            </View>
-            {/* Generador de QR */}
-            <QRGenerator value={qrValue || 'invalid'} size={250} />
-            <Text style={{fontSize: 22, color: '#48484A', marginBottom: 14}}>{address || 'Sin dirección'}</Text>
-            <View style={{backgroundColor: '#eaf6ff', borderRadius: 8, paddingHorizontal: 20, paddingVertical: 6, marginTop: 1}}>
-              <Text style={{color: '#007AFF', fontWeight: 'bold', fontSize: 13}}>QRing 2.0</Text>
-            </View>
-          </View>
-
-          {/* Botón exportar */}
-          <View style={{width: '80%', alignItems: 'center', marginBottom: 12, alignSelf: 'center'}}>
-            <TouchableOpacity
-              style={{backgroundColor: '#007AFF', borderRadius: 10, width: '100%', paddingVertical: 12, alignItems: 'center'}}
-              onPress={() => setModalVisible(true)}
-            >
-              <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 22}}>Imprimir Etiqueta</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Modal de vista previa */}
-          <Modal visible={modalVisible} transparent={true} animationType="slide">
-            <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 1 }}>
-                  <View style={styles.labelContainer}>
-                    <View style={styles.labelHeader}>
-                      <Ionicons name="notifications-outline" size={24} color="#007AFF" />
-                      <Text style={styles.labelTitle}>TIMBRE</Text>
-                      <Ionicons name="notifications-outline" size={24} color="#007AFF" />
-                    </View>
-                    <QRGenerator value={qrValue || 'invalid'} size={180} />
-                    {showAddressInLabel && address && (
-                       <Text style={styles.labelAddressText}>{address}</Text>
-                    )}
-                    <View style={styles.labelFooter}>
-                      <Text style={styles.qringText}>
-                        <Text style={{color: '#007AFF'}}>QR</Text>
-                        <Text style={{color: '#000'}}>ing</Text>
-                        <Text style={{color: '#48484A'}}> 2.0</Text>
-                      </Text>
-                    </View>
-                  </View>
-                </ViewShot>
-                <TouchableOpacity style={styles.saveButton} onPress={saveToGallery}>
-                  <Text style={styles.saveButtonText}>Guardar en Galería</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
-                  <Text style={styles.closeButtonText}>Cerrar</Text>
-                </TouchableOpacity>
+            {/* Contenedor de número y estado */}
+            <View style={styles.numeroContainer}>
+              <View style={styles.activadoBadge}>
+                <Text style={styles.activadoText}>● ACTIVADO</Text>
+              </View>
+              <View style={styles.numeroBox}>
+                <Text style={styles.numeroText}>{phone || 'Sin número'}</Text>
               </View>
             </View>
-          </Modal>
+
+            {/* Tarjeta de timbre */}
+            <View style={styles.timbreCard}>
+              <View style={styles.timbreHeader}>
+                <Ionicons name="notifications" size={28} color="#007AFF" />
+                <Text style={styles.timbreTitle}>TIMBRE</Text>
+                <Ionicons name="notifications" size={28} color="#007AFF" />
+              </View>
+              {(qrValue && qrValue !== 'invalid') ? (
+                <QRGenerator value={qrValue} size={250} />
+              ) : (
+                <View style={styles.qrPlaceholder}>
+                  <Ionicons name="qr-code-outline" size={150} color="#E0E0E0" />
+                  <Text style={styles.qrPlaceholderText}>Configura tu número</Text>
+                </View>
+              )}
+              <Text style={styles.addressText}>{address || 'Sin dirección'}</Text>
+              <View style={styles.qringVersionBadge}>
+                <Text style={styles.qringVersionText}>QRing 2.0</Text>
+              </View>
+            </View>
+
+            {/* Botón exportar */}
+            <View style={styles.exportButtonContainer}>
+              <TouchableOpacity
+                style={styles.exportButton}
+                onPress={() => setModalVisible(true)}
+              >
+                <Text style={styles.exportButtonText}>Imprimir Etiqueta</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* --- Caja de Instrucciones (Corrección Definitiva) --- */}
+            <View style={styles.instructionContainer}>
+              <Text style={styles.instructionTitle}>💡 ¡Tu QRing está listo!</Text>
+              <Text style={styles.instructionText}>• Usa el botón 'Imprimir Etiqueta' para guardarla o compartirla.</Text>
+              <Text style={styles.instructionText}>• Pégala cerca de tu puerta o timbre.</Text>
+            </View>
+            {/* --- Fin Caja de Instrucciones --- */}
+          </View>
+        </LinearGradient>
+      </ScrollView>
+      <Modal visible={modalVisible} transparent={true} animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <ViewShot ref={viewShotRef} options={{ format: 'png', quality: 1 }}>
+              <View style={styles.labelContainer}>
+                <View style={styles.labelHeader}>
+                  <Ionicons name="notifications-outline" size={24} color="#007AFF" />
+                  <Text style={styles.labelTitle}>TIMBRE</Text>
+                  <Ionicons name="notifications-outline" size={24} color="#007AFF" />
+                </View>
+                <QRGenerator value={qrValue || 'invalid'} size={180} />
+                {showAddressInLabel && address && (
+                   <Text style={styles.labelAddressText}>{address}</Text>
+                )}
+                <View style={styles.labelFooter}>
+                  <Text style={styles.qringText}>
+                    <Text style={{color: '#007AFF'}}>QR</Text>
+                    <Text style={{color: '#000'}}>ing</Text>
+                    <Text style={{color: '#48484A'}}> 2.0</Text>
+                  </Text>
+                </View>
+              </View>
+            </ViewShot>
+            
+            {/* Nueva estructura de botones */}
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity style={styles.modalButton} onPress={saveToGallery}>
+                <Icon name="download" size={20} color="#007AFF" />
+                <Text style={styles.modalButtonText}>Guardar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButton} onPress={shareLabel}>
+                <Icon name="share-variant" size={20} color="#007AFF" />
+                <Text style={styles.modalButtonText}>Compartir</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+              <Text style={styles.closeButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </LinearGradient>
+      </Modal>
     </View>
   );
 }
@@ -169,11 +214,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#EAF6FF',
   },
+  scrollContainer: {
+    flexGrow: 1,
+  },
   gradient: {
     flex: 1,
   },
   contentContainer: {
-    flex: 1,
     margin: 24,
     backgroundColor: '#fff',
     borderRadius: 24,
@@ -184,6 +231,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     paddingTop: 36,
+    paddingBottom: 24,
     justifyContent: 'flex-start',
   },
   title: {
@@ -210,7 +258,7 @@ const styles = StyleSheet.create({
     width: '90%',
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 16,
+    padding: 20,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -231,6 +279,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     minWidth: 250,
+    marginBottom: 20,
   },
   labelHeader: {
     flexDirection: 'row',
@@ -262,24 +311,172 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
   },
-  saveButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+  modalButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
     marginTop: 16,
   },
-  saveButtonText: {
-    color: '#fff',
+  modalButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EAF6FF',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    minWidth: 120,
+    justifyContent: 'center',
+  },
+  modalButtonText: {
+    color: '#007AFF',
     fontWeight: 'bold',
     fontSize: 16,
+    marginLeft: 8,
   },
   closeButton: {
-    marginTop: 12,
+    marginTop: 20,
   },
   closeButtonText: {
     color: '#007AFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  exportButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 10,
+    width: '100%',
+    paddingVertical: 12,
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3.84,
+    elevation: 3,
+  },
+  exportButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 22,
+  },
+  instructionContainer: {
+    width: '80%',
+    backgroundColor: '#EAF6FF',
+    borderRadius: 12,
+    paddingVertical: 12, 
+    paddingHorizontal: 16, 
+    marginTop: 16,
+    marginBottom: 8,
+    alignSelf: 'center',
+  },
+  instructionTitle: {
+    color: '#007AFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  instructionText: {
+    color: '#48484A',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  timbreCard: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 12,
+    alignItems: 'center',
+    marginBottom: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+    width: '80%',
+    alignSelf: 'center',
+  },
+  timbreHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  timbreTitle: {
+    color: '#007AFF',
+    fontWeight: 'bold',
+    fontSize: 36,
+    marginHorizontal: 8,
+  },
+  qrPlaceholder: {
+    width: 250,
+    height: 250,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  qrPlaceholderText: {
+    marginTop: 8,
+    fontSize: 16,
+    color: '#B0B0B0',
+  },
+  addressText: {
+    fontSize: 22, 
+    color: '#48484A', 
+    marginBottom: 14,
+    textAlign: 'center',
+  },
+  qringVersionBadge: {
+    backgroundColor: '#eaf6ff', 
+    borderRadius: 8, 
+    paddingHorizontal: 20, 
+    paddingVertical: 6, 
+    marginTop: 1,
+  },
+  qringVersionText: {
+    color: '#007AFF', 
+    fontWeight: 'bold', 
+    fontSize: 13,
+  },
+  numeroContainer: {
+    width: '80%', 
+    alignItems: 'center', 
+    marginBottom: 15, 
+    alignSelf: 'center', 
+    marginTop: 11
+  },
+  activadoBadge: {
+    position: 'absolute', 
+    top: -8, 
+    left: 18, 
+    zIndex: 2, 
+    backgroundColor: '#fff', 
+    paddingHorizontal: 10
+  },
+  activadoText: {
+    color: '#27ae60', 
+    fontWeight: 'bold', 
+    fontSize: 14
+  },
+  numeroBox: {
+    borderWidth: 2, 
+    borderColor: '#27ae60', 
+    borderRadius: 16, 
+    paddingVertical: 18, 
+    paddingHorizontal: 28, 
+    width: '100%', 
+    backgroundColor: '#fff', 
+    alignItems: 'center'
+  },
+  numeroText: {
+    fontSize: 40, 
+    fontWeight: 'bold', 
+    color: '#222', 
+    letterSpacing: 1
+  },
+  exportButtonContainer: {
+    width: '80%', 
+    alignItems: 'center', 
+    marginBottom: 12, 
+    alignSelf: 'center'
   },
 });

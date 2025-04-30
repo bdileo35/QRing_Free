@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions, Image, FlatList } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Image, FlatList, ScrollView } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import Header from '../components/Header';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -57,58 +57,60 @@ export default function HelpScreen() {
   return (
     <View style={styles.root}>
       <Header />
-      <View style={styles.contentContainer}>
-        <Text style={styles.title}>
-          ¿Cómo funciona <Text style={{color: '#007AFF'}}>QR</Text><Text style={{color: '#000'}}>ing</Text>?
-        </Text>
-        
-        <View style={styles.carouselContainer}>
-          <FlatList
-            ref={flatListRef}
-            data={helpData}
-            renderItem={renderItem}
-            keyExtractor={(_, idx) => idx.toString()}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            style={styles.carousel}
-            initialScrollIndex={0}
-            onViewableItemsChanged={onViewRef.current}
-            viewabilityConfig={viewConfigRef.current}
-            snapToInterval={width - 100}
-            snapToAlignment="center"
-            decelerationRate="fast"
-            getItemLayout={(_, index) => ({ 
-              length: width - 100,
-              offset: (width - 100) * index,
-              index 
-            })}
-          />
-          
-          <View style={styles.progressBar}>
-            {helpData.map((_, idx) => (
-              <View
-                key={idx}
-                style={[styles.progressDot, activeIndex === idx && styles.progressDotActive]}
-              />
-            ))}
-          </View>
-
-          <View style={styles.swipeIndicator}>
-            <Icon name="gesture-tap-button" size={28} color="#007AFF" />
-            <Text style={styles.swipeText}>Deslizá para ver más</Text>
-          </View>
-        </View>
-
-        <View style={styles.instructionContainer}>
-          <Text style={styles.instructionTitle}>💡 ¿Sabías que?</Text>
-          <Text style={styles.instructionText}>
-            • QRing funciona aunque no estés en casa{'\n'}
-            • Podés atender desde cualquier lugar{'\n'}
-            • Tu número está seguro, nadie lo ve
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.contentContainer}>
+          <Text style={styles.title}>
+            ¿Cómo funciona <Text style={{color: '#007AFF'}}>QR</Text><Text style={{color: '#000'}}>ing</Text>?
           </Text>
+          
+          <View style={styles.carouselContainer}>
+            <FlatList
+              ref={flatListRef}
+              data={helpData}
+              renderItem={renderItem}
+              keyExtractor={(_, idx) => idx.toString()}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              style={styles.carousel}
+              initialScrollIndex={0}
+              onViewableItemsChanged={onViewRef.current}
+              viewabilityConfig={viewConfigRef.current}
+              snapToInterval={width - 100}
+              snapToAlignment="center"
+              decelerationRate="fast"
+              getItemLayout={(_, index) => ({ 
+                length: width - 100,
+                offset: (width - 100) * index,
+                index 
+              })}
+            />
+            
+            <View style={styles.progressBar}>
+              {helpData.map((_, idx) => (
+                <View
+                  key={idx}
+                  style={[styles.progressDot, activeIndex === idx && styles.progressDotActive]}
+                />
+              ))}
+            </View>
+
+            <View style={styles.swipeIndicator}>
+              <Icon name="gesture-tap-button" size={28} color="#007AFF" />
+              <Text style={styles.swipeText}>Deslizá para ver más</Text>
+            </View>
+          </View>
+
+          <View style={styles.instructionContainer}>
+            <Text style={styles.instructionTitle}>💡 ¿Sabías que?</Text>
+            <Text style={styles.instructionText}>
+              • QRing funciona aunque no estés en casa{'\n'}
+              • Podés atender desde cualquier lugar{'\n'}
+              • Tu número está seguro, nadie lo ve
+            </Text>
+          </View>
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -118,8 +120,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#EAF6FF',
   },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
   contentContainer: {
-    flex: 1,
     margin: 24,
     backgroundColor: '#fff',
     borderRadius: 24,
@@ -130,6 +135,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     paddingTop: 36,
+    paddingBottom: 24,
     justifyContent: 'flex-start',
   },
   title: {
