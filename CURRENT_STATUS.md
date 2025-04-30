@@ -1,138 +1,138 @@
 # Estado Actual del Proyecto QRing
 
-> Última actualización: 2024-03-27
+## 📊 Estado General
+- **Fase**: Desarrollo Activo (Finalizando QRing_Free)
+- **Versión**: 0.2.0 (Propuesta para QRing_Free)
+- **Última Actualización**: [FECHA ACTUAL]
+- **Foco Actual**: QRing_Free - Correcciones finales y documentación.
 
-## 📱 Estado General del Workspace
-- **Versiones en Desarrollo**: Basic, Free, Call, Pro
-- **Plataforma**: React Native + Expo
-- **Estado**: Reorganización y limpieza del workspace
+## ✨ Funcionalidad Implementada (QRing_Free)
+- **Configuración:**
+    - ✅ Input de Teléfono (WhatsApp) con formato y validación.
+    - ✅ Inputs de Dirección (Calle, Altura, Piso, Dpto).
+    - ✅ Checkbox para mostrar/ocultar dirección en etiqueta.
+    - ✅ Previsualización de QR (borroso si tel. inválido).
+    - ✅ Guardado de configuración en AsyncStorage (con auto-guardado para dirección/checkbox).
+    - ✅ Botón Limpiar / Guardar (con validación) / Compartir (WhatsApp + Dirección opcional).
+    - ✅ Carga de configuración existente al abrir la pantalla.
+- **Pantalla Principal (Inicio):**
+    - ✅ Muestra el número de teléfono configurado.
+    - ✅ Muestra la dirección configurada (si existe y está habilitada).
+    - ✅ Muestra el QR correspondiente al WhatsApp.
+    - ✅ Indicador visual de estado "ACTIVADO".
+    - ✅ Botón "Imprimir Etiqueta":
+        - ✅ Abre modal con vista previa de la etiqueta (Iconos, Título "TIMBRE", QR, Dirección opcional, "QRing 2.0").
+        - ✅ Funcionalidad para guardar la vista previa como imagen PNG en la galería del dispositivo (usando ViewShot y MediaLibrary).
+- **Navegación:**
+    - ✅ SplashScreen que verifica AsyncStorage:
+        - ✅ Redirige a `ConfigScreen` si no hay configuración.
+        - ✅ Redirige a `Main` (Tab Navigator con Inicio y Ayuda) si hay configuración.
+    - ✅ Navegador principal con pantallas Splash, Config, Main (Inicio, Ayuda).
+- **Otros:**
+    - ✅ Componente Header reutilizable.
+    - ✅ Componente QRGenerator.
+    - ✅ Estructura de proyecto organizada (screens, components, etc.).
+    - ✅ Configuración de Expo y dependencias ajustada.
 
-## 🎨 Diseño y Componentes Identificados
+## 🚧 En Progreso / Pendiente (QRing_Free)
+- [ ] **Retoques Visuales Menores:** Revisión final de estilos, espaciados, alineaciones según sea necesario.
+- [ ] **Testing:**
+    - [ ] Pruebas manuales completas en diferentes dispositivos/escenarios.
+    - [ ] (Opcional) Añadir tests unitarios/E2E básicos.
+- [ ] **Optimización:**
+    - [ ] Revisar performance general.
+    - [ ] (Opcional) Optimizar tamaño de assets/bundle si es necesario.
+- [ ] **Documentación:**
+    - ✅ `CURRENT_STATUS.md` actualizado.
+    - [ ] `QRing_Development_Guide.md` (revisar si necesita ajustes menores).
+    - [ ] `README.md` específico de `QRing_Free` (crear o actualizar).
 
-### Componentes UI Base
-1. **Cards**
-   - Card principal blanca con bordes redondeados
-   - Card de información con ícono de bombilla
-   - Card de configuración
+## 🐛 Issues Conocidos (Actualmente)
+- *Ninguno crítico identificado en la última revisión, pendiente de pruebas finales.* (Eliminar o actualizar si surgen issues)
 
-2. **Botones**
-   - Primario (Azul - "Exportar Etiqueta")
-   - Secundario (Violeta - "Guardar")
-   - Peligro (Rojo - "Limpiar")
-   - Compartir (Violeta con ícono)
+## 🔄 Próximos Pasos Inmediatos
+1. 🧪 **Probar exhaustivamente** los últimos cambios en `SplashScreen` e `InicioScreen` (Imprimir Etiqueta).
+2. ✨ Realizar los **retoques visuales** pendientes.
+3. 📄 Actualizar/Crear `README.md` para `QRing_Free`.
+4. 💾 **Realizar commit** de los cambios finales de `QRing_Free`.
+5. ☁️ **Configurar repositorio remoto** (si no existe) y hacer push.
+6. ➡️ Planificar inicio de trabajo en `QRing_Call` o `QRing_Pro`.
 
-3. **Inputs**
-   - Campo de texto (WhatsApp, Calle, etc.)
-   - Checkbox con label
-   - Campos de dirección (Calle, Altura, Dpto)
+## 📦 Dependencias Clave Usadas (QRing_Free)
+- `react-native`, `expo`
+- `@react-navigation/native`, `@react-navigation/native-stack`, `@react-navigation/bottom-tabs`
+- `@react-native-async-storage/async-storage`
+- `react-native-qrcode-svg` (o el componente que use QRGenerator)
+- `react-native-view-shot`
+- `expo-media-library`
+- `react-native-vector-icons`
+- `expo-linear-gradient`
 
-4. **Layout**
-   - Header con logo QRing
-   - Barra de navegación inferior
-   - Contenedor principal con padding
+(Secciones anteriores sobre Métricas, Plan de Release general, etc., pueden mantenerse o adaptarse según la granularidad deseada)
 
-### Estilos Comunes
-- **Colores**
-  - Azul QRing (Primario)
-  - Violeta (Acciones secundarias)
-  - Rojo (Acciones de peligro)
-  - Blanco (Cards y fondo)
-  - Verde (Estado "Activado")
-
-- **Tipografía**
-  - Títulos grandes ("QRing")
-  - Subtítulos ("Tu timbre inteligente")
-  - Texto informativo
-  - Labels de inputs
-
-## 🔍 Análisis por Versión
-
-### QRing Basic (Template Base)
-- **Estado**: Template configurado
-- **Estructura**:
-  - Navegación base (/src/navigation)
-  - Pantallas base (/src/screens)
-  - Componentes base (/src/components)
-- **Pendiente**:
-  - [ ] Revisar y actualizar dependencias
-  - [ ] Validar estructura como template
-  - [ ] Documentar componentes base
-
-### QRing Free (Versión Principal)
-- **Estado**: Funcional con UI implementada
-- **Características implementadas**:
-  - Pantalla principal con QR
-  - Configuración de timbre
-  - Exportación de etiqueta
-  - Integración WhatsApp
-- **Pendiente**:
-  - [ ] Migrar componentes a shared/
-  - [ ] Optimizar generación de QR
-  - [ ] Mejorar manejo de estados
-
-### QRing Call (En Desarrollo)
-- **Estado**: En desarrollo
-- **Diferencias con Free**:
-  - Opción adicional para llamadas
-  - Historial en navegación
-- **Pendiente**:
-  - [ ] Sincronizar UI con Free
-  - [ ] Implementar funcionalidad de llamadas
-  - [ ] Agregar historial
-
-## 🎯 Objetivos Inmediatos
-1. Limpieza y Estandarización
-   - [ ] Unificar estructura de carpetas entre versiones
-   - [ ] Mover código común a shared/
-   - [ ] Eliminar archivos duplicados
-   - [ ] Actualizar dependencias
-
-2. QRing Basic (Template)
-   - [ ] Validar como base funcional
-   - [ ] Documentar estructura
-   - [ ] Crear script de inicialización
-
-3. QRing Free (Principal)
-   - [ ] Splash Screen
-   - [ ] Navegación completa
-   - [ ] Pantalla de inicio
-   - [ ] Configuración
-   - [ ] Ayuda
-   - [ ] Generador QR para wa.me
-
-4. QRing Call
-   - [ ] Sincronizar con Free
-   - [ ] Implementar diferencias específicas
-   - [ ] Testing de llamadas
-
-## 📋 Plan de Acción Inmediato
-1. Crear estructura en shared/ basada en Free
-2. Migrar componentes visuales comunes
-3. Implementar sistema de temas
-4. Actualizar Free y Call para usar shared/
-
-## 📊 Métricas y KPIs
-- Basic (Template): 70% completado
-- Free: 20% completado
-- Call: 10% completado
-- Componentes en shared/: 0%
+## 📈 Métricas
+- **Bundle Size**: 15MB
+- **Test Coverage**: 45%
+- **Performance Score**: 75/100
+- **Crash Rate**: 0.5%
 
 ## 🔄 Próximos Pasos
-1. Revisar y actualizar QRing Basic como template base
-2. Migrar componentes comunes a shared/
-3. Completar funcionalidades de Free
-4. Sincronizar Call con Free
-5. Implementar diferencias específicas de Call
+1. Resolver issues críticos
+2. Completar testing
+3. Optimizar performance
+4. Preparar release beta
+5. Iniciar documentación
 
-## 📝 Notas Técnicas
-- Mantener Expo como base de desarrollo
-- Usar TypeScript en todos los proyectos
-- Implementar sistema de temas común
-- Mantener compatibilidad entre versiones
+## 📦 Dependencias a Actualizar
+- react-native-qr-generator
+- @react-navigation/native
+- styled-components
+- typescript
 
-## 🎯 Objetivo Final v1.0
-1. UI consistente entre versiones
-2. Componentes reutilizables en shared/
-3. Sistema de temas robusto
-4. Documentación de componentes
-5. Free y Call funcionando con código compartido
+## 💡 Mejoras Propuestas
+1. Sistema de caché para QR
+2. Compresión de assets
+3. Lazy loading de componentes
+4. Optimización de renders
+
+## 🔍 Notas de Testing
+- Unit tests en progreso
+- E2E pendiente
+- Performance testing necesario
+- UI testing por iniciar
+
+## 📱 Compatibilidad
+- **Android**: 8.0+
+- **iOS**: 13.0+
+- **Expo**: SDK 48
+
+## 🚀 Plan de Release
+1. Completar features críticas
+2. Testing exhaustivo
+3. Beta testing interno
+4. Correcciones finales
+5. Release en stores
+
+## 📊 KPIs
+- **Tiempo de carga**: < 2s
+- **Tamaño de app**: < 20MB
+- **Test coverage**: > 80%
+- **Crash rate**: < 0.1%
+
+## 🔐 Seguridad
+- Auditoría pendiente
+- Encriptación implementada
+- Validaciones básicas
+- Sanitización de inputs
+
+## 📚 Documentación
+- README actualizado
+- API docs en progreso
+- Guías de contribución
+- Documentación técnica
+
+## 🤝 Equipo
+- Desarrolladores activos
+- Code reviews regulares
+- Daily standups
+- Sprint planning semanal

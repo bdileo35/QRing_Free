@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { SplashScreen } from '@components/SplashScreen';
-import { AppNavigator } from './navigation/AppNavigator';
+import SplashScreen from './components/SplashScreen';
+import AppNavigator from './navigation/AppNavigator';
 
 const App = () => {
   const [loading, setLoading] = useState(true);

@@ -1,10 +1,42 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from '../components/Header';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { QRGenerator } from '../components/common/QRGenerator';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function InicioScreen() {
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [qrValue, setQrValue] = useState('');
+
+  // Cargar datos cada vez que la pantalla se enfoca
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadConfig = async () => {
+        try {
+          const savedConfig = await AsyncStorage.getItem('@qring_config');
+          if (savedConfig) {
+            const configData = JSON.parse(savedConfig);
+            console.log('Datos cargados en InicioScreen:', configData);
+            setPhone(configData.phone ? `11 ${configData.phone.slice(2, 6)}-${configData.phone.slice(6)}` : '');
+            const fullAddress = `${configData.address.street || ''} ${configData.address.number || ''}${
+              configData.address.floor ? ` - Piso ${configData.address.floor}` : ''
+            }${configData.address.apartment ? ` Dpto ${configData.address.apartment}` : ''}`;
+            setAddress(fullAddress.trim());
+            setQrValue(`https://wa.me/549${configData.phone}`);
+          }
+        } catch (error) {
+          console.error('Error cargando configuración en InicioScreen:', error);
+        }
+      };
+
+      loadConfig();
+    }, [])
+  );
+
   return (
     <View style={styles.root}>
       <Header />
@@ -20,15 +52,17 @@ export default function InicioScreen() {
             <Text style={{color: '#000'}}>ing</Text>
           </Text>
           <Text style={styles.subtitle}>Tu timbre inteligente</Text>
+
           {/* Contenedor de número y estado */}
           <View style={{width: '80%', alignItems: 'center', marginBottom: 15, alignSelf: 'center', marginTop: 11}}>
             <View style={{position: 'absolute', top: -8, left: 18, zIndex: 2, backgroundColor: '#fff', paddingHorizontal: 10}}>
               <Text style={{color: '#27ae60', fontWeight: 'bold', fontSize: 14}}>● ACTIVADO</Text>
             </View>
             <View style={{borderWidth: 2, borderColor: '#27ae60', borderRadius: 16, paddingVertical: 18, paddingHorizontal: 28, width: '100%', backgroundColor: '#fff', alignItems: 'center'}}>
-              <Text style={{fontSize: 40, fontWeight: 'bold', color: '#222', letterSpacing: 1}}>5491122473759</Text>
+              <Text style={{fontSize: 40, fontWeight: 'bold', color: '#222', letterSpacing: 1}}>{phone || 'Sin número'}</Text>
             </View>
           </View>
+
           {/* Tarjeta de timbre */}
           <View style={{backgroundColor: '#fff', borderRadius: 24, padding: 12, alignItems: 'center', marginBottom: 18, shadowColor: '#000', shadowOffset: {width: 0, height: 2}, shadowOpacity: 0.08, shadowRadius: 8, elevation: 4, width: '80%', alignSelf: 'center'}}>
             <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 8}}>
@@ -36,18 +70,21 @@ export default function InicioScreen() {
               <Text style={{color: '#007AFF', fontWeight: 'bold', fontSize: 36, marginHorizontal: 8}}>TIMBRE</Text>
               <Ionicons name="notifications" size={28} color="#007AFF" />
             </View>
-            <View style={{width: 250, height: 250, backgroundColor: '#F3F3F3', borderRadius: 18, marginBottom: 14, borderWidth: 2, borderColor: '#B0B0B0', alignSelf: 'center'}} />
-            <Text style={{fontSize: 22, color: '#48484A', marginBottom: 14}}>Tilcara 2306 - 4D</Text>
+            {/* Generador de QR */}
+            <QRGenerator value={qrValue || 'invalid'} size={250} />
+            <Text style={{fontSize: 22, color: '#48484A', marginBottom: 14}}>{address || 'Sin dirección'}</Text>
             <View style={{backgroundColor: '#eaf6ff', borderRadius: 8, paddingHorizontal: 20, paddingVertical: 6, marginTop: 1}}>
               <Text style={{color: '#007AFF', fontWeight: 'bold', fontSize: 13}}>QRing 2.0</Text>
             </View>
           </View>
+
           {/* Botón exportar */}
           <View style={{width: '80%', alignItems: 'center', marginBottom: 12, alignSelf: 'center'}}>
             <View style={{backgroundColor: '#007AFF', borderRadius: 10, width: '100%', paddingVertical: 12, alignItems: 'center'}}>
-              <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 22}}>Exportar Etiqueta</Text>
+              <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 22}}>Imprimir Etiqueta</Text>
             </View>
           </View>
+
           {/* Instrucciones */}
           <View style={{backgroundColor: '#f6faff', borderRadius: 12, padding: 14, width: '80%', marginTop: 4, alignSelf: 'center'}}>
             <Text style={{color: '#007AFF', fontWeight: 'bold', fontSize: 18, marginBottom: 2}}>💡 Después de imprimir tu etiqueta:</Text>
@@ -99,4 +136,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '500',
   },
-}); 
+});

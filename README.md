@@ -1,81 +1,86 @@
-# ExpoBasico
+# QRing Workspace
 
-Plantilla base para proyectos Expo con:
-- Splash Screen
-- Navegación por pestañas
-- TypeScript
-- Estructura organizada de archivos
+## 📱 Descripción
+QRing es una suite de aplicaciones para la gestión de timbres inteligentes, desarrollada con React Native + Expo. El workspace contiene diferentes versiones del producto adaptadas a distintas necesidades.
 
-## Características
+## 🌟 Versiones
 
-- 🚀 Configuración inicial rápida
-- 📱 Splash Screen personalizable
-- 🔄 Navegación por pestañas (Inicio, Configuración, Ayuda)
-- 📝 TypeScript para mejor desarrollo
-- 📁 Estructura de archivos organizada
+### QRing Basic
+Template base para todas las versiones. Contiene la estructura fundamental y componentes base.
 
-## Instalación
+### QRing Free
+Versión gratuita con funcionalidades básicas:
+- Generación de QR para WhatsApp
+- Configuración de timbre
+- Exportación de etiqueta
 
-1. Clona este repositorio:
-```bash
-git clone https://github.com/bdileo35/ExpoBasico.git mi-proyecto
-cd mi-proyecto
+### QRing Call
+Versión con funcionalidades adicionales:
+- Todo lo incluido en Free
+- Llamadas directas
+- Historial de interacciones
+
+## 🛠 Estructura del Workspace
+
+```
+QRing_Workspace/
+├── shared/               # Código compartido entre versiones
+│   ├── components/      # Componentes UI reutilizables
+│   ├── theme/          # Sistema de temas y estilos
+│   ├── hooks/          # Hooks personalizados
+│   ├── utils/          # Utilidades comunes
+│   └── types/          # Definiciones de TypeScript
+├── QRing_Basic/         # Template base
+├── QRing_Free/          # Versión gratuita
+└── QRing_Call/          # Versión con llamadas
 ```
 
-2. Instala las dependencias:
+## 🎨 Diseño UI
+- Cards con bordes redondeados y sombras suaves
+- Botones con estados y feedback visual
+- Inputs validados y con feedback
+- Navegación intuitiva
+- Tema consistente entre versiones
+
+## 🎯 Objetivos Actuales
+1. Migración de componentes a shared/
+2. Implementación de sistema de temas
+3. Optimización de generación QR
+4. Mejora en manejo de estados
+5. Testing y documentación
+
+## 🚀 Comenzar
+
+1. Instalar dependencias:
 ```bash
 npm install
 ```
 
-3. Inicia el proyecto:
+2. Iniciar el proyecto:
 ```bash
-npx expo start --clear
+npx expo start
 ```
 
-## Estructura del Proyecto
+## 📝 Convenciones
+- TypeScript para todo el código
+- Componentes funcionales con hooks
+- Styled-components para estilos
+- Jest para testing
+- ESLint + Prettier para formato
 
-```
-├── assets/
-│   └── images/
-│       ├── icon.png
-│       ├── splash.png
-│       ├── adaptive-icon.png
-│       └── favicon.png
-├── src/
-│   ├── screens/
-│   │   ├── InicioScreen.tsx
-│   │   ├── ConfigScreen.tsx
-│   │   └── AyudaScreen.tsx
-│   └── navigation/
-│       └── TabNavigator.tsx
-├── App.tsx
-├── app.json
-└── tsconfig.json
-```
+## 📦 Dependencias Principales
+- React Native
+- Expo
+- React Navigation
+- TypeScript
+- Styled Components
 
-## Uso como Template
+## 🤝 Contribución
+1. Crear branch desde develop
+2. Implementar cambios
+3. Crear PR a develop
+4. Code review
+5. Merge a develop
 
-1. Crea un nuevo proyecto:
-```bash
-npx create-expo-app mi-proyecto --template blank-typescript
-cd mi-proyecto
-```
-
-2. Ejecuta el script de configuración:
-```bash
-.\setup.bat
-```
-
-## Personalización
-
-- Modifica los assets en `assets/images/`
-- Personaliza las pantallas en `src/screens/`
-- Ajusta la navegación en `src/navigation/`
-
-## Contribuir
-
-Las contribuciones son bienvenidas. Por favor, abre un issue primero para discutir los cambios que te gustaría hacer.
-
-## Licencia
-
-MIT
+## 📄 Licencia
+Propiedad de QRing. Todos los derechos reservados.

@@ -1,177 +1,233 @@
 # QRing Development Guide
 
-## Descripción General del Proyecto
+## 🎯 Objetivos del Proyecto
 
-QRing es una familia de aplicaciones de timbre inteligente basado en QR, con diferentes versiones según las necesidades del usuario:
+### Propósito
+Crear una suite de aplicaciones para timbres inteligentes que permita:
+- Generar códigos QR para comunicación
+- Gestionar múltiples timbres
+- Personalizar la experiencia del usuario
+- Mantener un diseño moderno y accesible
 
-### Versiones
+### Público Objetivo
+- Usuarios residenciales
+- Negocios pequeños
+- Edificios de departamentos
+- Espacios compartidos
 
-1. **QRing Basic**
-   - Versión base con navegación y pantallas fundamentales
-   - Sirve como plantilla para otras versiones
-   - Incluye solo la estructura básica de navegación
+## 🏗 Arquitectura
 
-2. **QRing Free**
-   - Versión gratuita funcional
-   - Genera QR vinculado a WhatsApp (`wa.me/número`)
-   - Incluye:
-     - Splash Screen
-     - Navegación completa
-     - Pantalla de inicio
-     - Configuración
-     - Ayuda
-     - Generación de QR
-
-3. **QRing Call**
-   - Similar a Free pero con funcionalidad adicional
-   - Opciones en configuración:
-     - WhatsApp
-     - Llamada telefónica
-   - Incluye historial de llamadas en la barra de navegación
-   - Comparte todas las características base con Free
-
-4. **QRing Pro**
-   - Versión premium con características avanzadas
-   - Sistema de edificios/departamentos
-   - Llamadas de voz/video sin exponer números
-   - Sistema de pagos y suscripción
-   - Backend completo con Firebase/Supabase
-
-## Estructura del Workspace
-
+### Estructura de Carpetas
 ```
-QRing_Workspace/
-├── shared/               # Código compartido entre todas las versiones
-│   ├── components/      # Componentes React Native reutilizables
-│   ├── constants/       # Constantes compartidas
-│   ├── types/          # Tipos TypeScript
-│   ├── utils/          # Utilidades y funciones helper
-│   └── hooks/          # Custom hooks compartidos
-│
-├── QRing_Basic/         # Versión básica
-├── QRing_Free/          # Versión gratuita
-├── QRing_Call/          # Versión con llamadas
-└── QRing_Pro/          # Versión premium
+src/
+├── components/          # Componentes reutilizables
+├── screens/            # Pantallas principales
+├── navigation/         # Configuración de navegación
+├── hooks/             # Hooks personalizados
+├── utils/             # Utilidades y helpers
+├── services/          # Servicios externos
+├── theme/             # Estilos y temas
+└── types/             # Tipos TypeScript
 ```
 
-## Componentes Compartidos (shared/)
+### Patrones de Diseño
+1. **Componentes**
+   - Funcionales con hooks
+   - Props tipadas
+   - Styled-components para estilos
+   - Documentación con JSDoc
 
-### Components
-- Navigation (estructura base)
-- Splash Screen
-- Configuración
-- Ayuda
-- QR Generator
-- Botones comunes
-- Headers
-- Layouts base
+2. **Estado**
+   - Context para estado global
+   - useState para estado local
+   - useReducer para lógica compleja
 
-### Constants
-- Colores
-- Estilos
-- Configuraciones
-- Rutas de navegación
+3. **Navegación**
+   - Stack Navigator para flujos
+   - Tab Navigator para secciones principales
+   - Parámetros tipados
 
-### Types
-- Interfaces comunes
-- Types de navegación
-- Types de configuración
+## 💻 Guías de Código
 
-### Utils
-- Generación de QR
-- Formateo
-- Validaciones
-- Helpers de navegación
+### Nombrado
+- PascalCase para componentes
+- camelCase para funciones y variables
+- UPPER_CASE para constantes
+- kebab-case para archivos de assets
+
+### Componentes
+```typescript
+interface Props {
+  title: string;
+  onPress: () => void;
+}
+
+export const MyComponent: React.FC<Props> = ({ title, onPress }) => {
+  return (
+    <Container>
+      <Title>{title}</Title>
+      <Button onPress={onPress} />
+    </Container>
+  );
+};
+```
 
 ### Hooks
-- useConfig
-- useNavigation
-- useQRGenerator
-
-## Flujo de Desarrollo
-
-1. **QRing Basic**
-   - Implementar navegación base
-   - Crear estructura de pantallas
-   - Configurar TypeScript y dependencias
-
-2. **QRing Free**
-   - Extender Basic
-   - Implementar generación de QR
-   - Integrar WhatsApp
-   - Completar pantallas principales
-
-3. **QRing Call**
-   - Clonar desde Free
-   - Agregar opciones de llamada
-   - Implementar historial
-   - Mantener paridad con Free en features comunes
-
-4. **QRing Pro**
-   - Desarrollar backend
-   - Implementar sistema de edificios
-   - Integrar WebRTC
-   - Configurar pagos
-
-## Guía de Implementación
-
-### 1. Setup Inicial
-```bash
-# Clonar el repositorio
-git clone [repo-url]
-
-# Instalar dependencias compartidas
-cd shared
-npm install
-
-# Setup de cada proyecto
-cd ../QRing_Free
-npm install
+```typescript
+const useMyHook = (param: string) => {
+  const [state, setState] = useState<string>(param);
+  
+  useEffect(() => {
+    // Lógica
+  }, [param]);
+  
+  return { state };
+};
 ```
 
-### 2. Desarrollo
-- Trabajar primero en componentes compartidos
-- Probar en Free/Call antes de Pro
-- Mantener consistencia entre versiones
-- Documentar cambios importantes
+## 🎨 UI/UX Guidelines
 
-### 3. Testing
-- Probar cada feature en todas las versiones afectadas
-- Verificar navegación
-- Comprobar generación de QR
-- Validar integraciones (WhatsApp, llamadas)
+### Colores
+- Primary: #007AFF
+- Secondary: #6C63FF
+- Background: #EAF6FF
+- Text: #48484A
+- Error: #FF3B30
 
-### 4. Deployment
-- Generar APK de prueba
-- Verificar configuración de Google Play
-- Preparar assets necesarios
-- Documentar proceso de publicación
+### Tipografía
+- Títulos: 28px, bold
+- Subtítulos: 18px, medium
+- Texto: 16px, regular
+- Botones: 14px, medium
 
-## Prioridades Actuales
+### Espaciado
+- Margin base: 8px
+- Padding base: 16px
+- Border radius: 12px
+- Gap entre elementos: 8px
 
-1. Completar limpieza del workspace
-2. Finalizar QRing Free
-   - Completar funcionalidades
-   - Testing exhaustivo
-   - Preparar para Google Play
-3. Documentar proceso
-4. Iniciar desarrollo de Call
+### Componentes UI
+1. **Botones**
+   - Height: 40px
+   - Border radius: 8px
+   - Con feedback visual
+   - Estados: default, pressed, disabled
 
-## Notas Importantes
+2. **Inputs**
+   - Height: 48px
+   - Border radius: 8px
+   - Con validación visual
+   - Con labels flotantes
 
-- Mantener código compartido en `shared/`
-- Seguir estándares de TypeScript
-- Documentar cambios mayores
-- Mantener versiones sincronizadas
-- Usar Expo para desarrollo
+3. **Cards**
+   - Border radius: 24px
+   - Sombras suaves
+   - Padding: 16px
+   - Margin: 8px
 
-## Recursos y Enlaces
+## 📱 Features por Versión
 
-- [Expo Documentation](https://docs.expo.dev/)
-- [React Native](https://reactnative.dev/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Google Play Console](https://play.google.com/console/)
+### QRing Free
+- Generación básica de QR
+- Configuración de WhatsApp
+- Exportación simple
 
-## Contacto y Soporte
+### QRing Call
+- Todo lo de Free
+- Llamadas directas
+- Historial
+- Múltiples timbres
 
-[Información de contacto y soporte aquí]
+## 🧪 Testing
+
+### Unit Tests
+- Jest para lógica
+- React Native Testing Library
+- Mocks para servicios
+
+### E2E Tests
+- Detox para testing nativo
+- Scenarios principales
+- Device testing
+
+## �� Release Process
+
+1. **Preparación**
+   - Actualizar versión
+   - Generar changelog
+   - Review de assets
+
+2. **Testing**
+   - Unit tests
+   - E2E tests
+   - Manual testing
+
+3. **Build**
+   - Android bundle
+   - iOS archive
+   - Expo build
+
+4. **Deploy**
+   - Play Store
+   - App Store
+   - Expo updates
+
+## 🔄 CI/CD
+
+### GitHub Actions
+- Build en PRs
+- Tests automáticos
+- Deploy a stores
+
+### Environments
+- Development
+- Staging
+- Production
+
+## 📈 Monitoreo
+
+### Analytics
+- Firebase Analytics
+- Crash reporting
+- User engagement
+
+### Performance
+- Bundle size
+- Render times
+- Network calls
+
+## 🛠 Herramientas Recomendadas
+
+### IDE
+- VS Code con extensiones:
+  - ESLint
+  - Prettier
+  - React Native Tools
+  - TypeScript
+
+### Debug
+- React Native Debugger
+- Flipper
+- Chrome DevTools
+
+## 🤝 Contribución
+
+1. **Preparación**
+   - Fork del repo
+   - Branch desde develop
+   - Instalar dependencias
+
+2. **Desarrollo**
+   - Seguir guías de código
+   - Documentar cambios
+   - Añadir tests
+
+3. **PR**
+   - Descripción clara
+   - Screenshots si aplica
+   - Linked issues
+
+4. **Review**
+   - Code review
+   - Testing
+   - Merge a develop

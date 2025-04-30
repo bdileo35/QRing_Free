@@ -1,37 +1,22 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import { COLORS, SHADOWS } from '../../constants/theme';
+import { View, StyleSheet } from 'react-native';
 
 interface QRGeneratorProps {
   value: string;
-  size?: number;
-  style?: ViewStyle;
-  logo?: string;
-  backgroundColor?: string;
-  foregroundColor?: string;
+  size: number;
 }
 
-export const QRGenerator: React.FC<QRGeneratorProps> = ({
-  value,
-  size = 200,
-  style,
-  logo,
-  backgroundColor = COLORS.white,
-  foregroundColor = COLORS.black,
-}) => {
+export const QRGenerator: React.FC<QRGeneratorProps> = ({ value, size }) => {
   return (
-    <View style={[styles.container, style]}>
+    <View style={styles.container}>
       <QRCode
         value={value}
         size={size}
-        backgroundColor={backgroundColor}
-        color={foregroundColor}
-        logo={logo ? { uri: logo } : undefined}
-        logoSize={size * 0.2}
-        logoBackgroundColor={backgroundColor}
-        logoBorderRadius={10}
-        quietZone={10}
+        backgroundColor="white"
+        color="black"
+        quietZone={8}
+        enableLinearGradient={false}
       />
     </View>
   );
@@ -39,11 +24,8 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    ...SHADOWS.md,
+    backgroundColor: 'white',
   },
 }); 

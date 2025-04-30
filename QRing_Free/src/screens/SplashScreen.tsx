@@ -1,15 +1,37 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SplashScreen({ navigation }: any) {
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (navigation && navigation.replace) {
-        navigation.replace('Main');
-      }
-    }, 2000); // 2 segundos
+    const checkConfig = async () => {
+      try {
+        const savedConfig = await AsyncStorage.getItem('@qring_config');
+        const configData = savedConfig ? JSON.parse(savedConfig) : null;
+        
+        setTimeout(() => {
+          if (navigation && navigation.replace) {
+            if (configData && configData.phone) {
+              console.log('SplashScreen: Datos encontrados, navegando a Main.');
+              navigation.replace('Main');
+            } else {
+              console.log('SplashScreen: Datos no encontrados o incompletos, navegando a Config.');
+              navigation.replace('Config');
+            }
+          }
+        }, 2000); 
 
-    return () => clearTimeout(timer);
+      } catch (error) {
+        console.error('SplashScreen: Error verificando configuración:', error);
+        setTimeout(() => {
+          if (navigation && navigation.replace) {
+            navigation.replace('Config');
+          }
+        }, 2000);
+      }
+    };
+
+    checkConfig();
   }, [navigation]);
 
   return (

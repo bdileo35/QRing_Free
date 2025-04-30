@@ -1,32 +1,231 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Share } from 'react-native';
 import Header from '../components/Header';
 import { Checkbox } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { QRGenerator } from '../components/common/QRGenerator';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+interface AddressData {
+  street: string;
+  number: string;
+  floor: string;
+  apartment: string;
+}
 
 export default function ConfigScreen() {
-  const [showInLabel, setShowInLabel] = useState(true);
+  const [showInLabel, setShowInLabel] = useState(false);
+  const [phone, setPhone] = useState('');
+  const [isValidPhone, setIsValidPhone] = useState(false);
+  
+  // Estado separado para cada campo de dirección
+  const [street, setStreet] = useState('');
+  const [number, setNumber] = useState('');
+  const [floor, setFloor] = useState('');
+  const [apartment, setApartment] = useState('');
+
+  const validatePhone = (text: string) => {
+    // Formato: 11 1234-5678
+    const phoneRegex = /^(\d{2}\s?\d{4}-?\d{4})$/;
+    return phoneRegex.test(text.replace(/\s/g, ''));
+  };
+
+  const formatPhoneNumber = (text: string) => {
+    // Eliminar todo excepto números
+    const numbers = text.replace(/[^\d]/g, '');
+    
+    // Formatear según la longitud
+    if (numbers.length <= 2) return numbers;
+    if (numbers.length <= 6) return `${numbers.slice(0, 2)} ${numbers.slice(2)}`;
+    return `${numbers.slice(0, 2)} ${numbers.slice(2, 6)}-${numbers.slice(6)}`;
+  };
+
+  const handlePhoneChange = (text: string) => {
+    // Limitar a 10 dígitos (11 2222-3333)
+    const numbersOnly = text.replace(/[^\d]/g, '');
+    if (numbersOnly.length <= 10) {
+      const formattedPhone = formatPhoneNumber(text);
+      setPhone(formattedPhone);
+    }
+  };
+
+  useEffect(() => {
+    const isValid = validatePhone(phone);
+    setIsValidPhone(isValid);
+  }, [phone]);
+
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const savedConfig = await AsyncStorage.getItem('@qring_config');
+        if (savedConfig) {
+          const configData = JSON.parse(savedConfig);
+          console.log('Datos cargados:', configData);
+          setPhone(formatPhoneNumber(configData.phone));
+          setShowInLabel(configData.showInLabel);
+          setStreet(configData.address.street || '');
+          setNumber(configData.address.number || '');
+          setFloor(configData.address.floor || '');
+          setApartment(configData.address.apartment || '');
+        }
+      } catch (error) {
+        console.error('Error cargando configuración:', error);
+      }
+    };
+
+    loadConfig();
+  }, []);
+
+  // Guardar automáticamente cuando el checkbox o la dirección cambien
+  useEffect(() => {
+    const saveCheckboxState = async () => {
+      try {
+        const configData = {
+          phone: phone.replace(/[^\d]/g, ''),
+          showInLabel,
+          address: {
+            street: showInLabel ? street : '',
+            number: showInLabel ? number : '',
+            floor: showInLabel ? floor : '',
+            apartment: showInLabel ? apartment : '',
+          },
+        };
+
+        await AsyncStorage.setItem('@qring_config', JSON.stringify(configData));
+        console.log('Datos actualizados automáticamente:', configData);
+      } catch (error) {
+        console.error('Error actualizando datos automáticamente:', error);
+      }
+    };
+
+    saveCheckboxState();
+  }, [showInLabel, street, number, floor, apartment]);
+
+  const handleClear = () => {
+    setPhone('');
+    setStreet('');
+    setNumber('');
+    setFloor('');
+    setApartment('');
+    setShowInLabel(false); // Restablecer el checkbox a false
+  };
+
+  const handleSave = async () => {
+    try {
+      if (showInLabel && (!street || !number)) {
+        Alert.alert(
+          "Error",
+          "Debe completar la dirección para mostrarla en la etiqueta",
+          [{ text: "OK" }],
+          { cancelable: false }
+        );
+        return;
+      }
+
+      const configData = {
+        phone: phone.replace(/[^\d]/g, ''),
+        showInLabel,
+        address: {
+          street: showInLabel ? street : '',
+          number: showInLabel ? number : '',
+          floor: showInLabel ? floor : '',
+          apartment: showInLabel ? apartment : '',
+        },
+      };
+
+      await AsyncStorage.setItem('@qring_config', JSON.stringify(configData));
+      console.log('Datos guardados:', configData);
+      Alert.alert(
+        "¡Éxito!",
+        "Configuración guardada correctamente",
+        [{ text: "OK" }],
+        { cancelable: false }
+      );
+    } catch (error) {
+      console.error('Error guardando configuración:', error);
+      Alert.alert(
+        "Error",
+        "No se pudo guardar la configuración",
+        [{ text: "OK" }],
+        { cancelable: false }
+      );
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      const addressText = showInLabel && street ? 
+        `\nDirección: ${street} ${number}${floor ? `, Piso ${floor}` : ''}${apartment ? `, Dpto ${apartment}` : ''}` : '';
+      
+      const message = `¡Hola! Este es mi timbre digital QRing.\nWhatsApp: ${phone}${addressText}`;
+      
+      await Share.share({
+        message,
+        title: 'Compartir QRing'
+      });
+    } catch (error) {
+      console.error('Error sharing:', error);
+      Alert.alert(
+        "Error",
+        "No se pudo compartir la configuración",
+        [{ text: "OK" }],
+        { cancelable: false }
+      );
+    }
+  };
+
+  const handleNumberChange = (text: string) => {
+    // Solo permitir números
+    const numbersOnly = text.replace(/[^\d]/g, '');
+    setNumber(numbersOnly);
+  };
+
+  const handleFloorChange = (text: string) => {
+    // Solo permitir números
+    const numbersOnly = text.replace(/[^\d]/g, '');
+    setFloor(numbersOnly);
+  };
 
   return (
     <View style={styles.root}>
       <Header />
       <View style={styles.contentContainer}>
         <Text style={styles.title}>Configuración del Timbre</Text>
-        <View style={styles.qrPlaceholder} />
+        
+        <View style={styles.qrContainer}>
+          <QRGenerator 
+            value={isValidPhone ? `https://wa.me/549${phone.replace(/[^\d]/g, '')}` : 'invalid'} 
+            size={220}
+          />
+          {!isValidPhone && (
+            <View style={styles.qrOverlay} />
+          )}
+        </View>
         
         <View style={styles.groupWrapper}>
           <View style={styles.labelWrapper}>
             <Text style={styles.label}>WhatsApp</Text>
           </View>
           <View style={styles.groupContainer}>
-            <View style={styles.inputPhone} />
+            <TextInput
+              style={[
+                styles.inputPhone,
+                !isValidPhone && phone.length > 0 && styles.inputError
+              ]}
+              value={phone}
+              onChangeText={handlePhoneChange}
+              placeholder="11 2222-3333"
+              placeholderTextColor="#B0B0B0"
+              keyboardType="phone-pad"
+              maxLength={12}
+            />
           </View>
-        </View>
-        
+          </View>
+
         <View style={styles.groupWrapper}>
           <View style={styles.labelWrapper}>
             <View style={styles.directionRow}>
-              <Text style={styles.label}>Dirección</Text>
+              <Text style={[styles.label, { marginRight: 8 }]}>Dirección</Text>
               <Checkbox.Android
                 status={showInLabel ? 'checked' : 'unchecked'}
                 onPress={() => setShowInLabel(!showInLabel)}
@@ -40,36 +239,78 @@ export default function ConfigScreen() {
               <View style={styles.addressInputsContainer}>
                 <View style={styles.inputGroup}>
                   <Text style={[styles.label, styles.sublabel]}>Calle</Text>
-                  <View style={styles.inputAddress} />
+                  <TextInput
+                    style={styles.inputAddress}
+                    value={street}
+                    onChangeText={setStreet}
+                    placeholder="Nombre de la calle"
+                    placeholderTextColor="#B0B0B0"
+                  />
                 </View>
                 <View style={styles.rowInputs}>
                   <View style={styles.inputGroupHalf}>
                     <Text style={[styles.label, styles.sublabel]}>Altura</Text>
-                    <View style={styles.inputSmall} />
+                    <TextInput
+                      style={styles.inputSmall}
+                      value={number}
+                      onChangeText={handleNumberChange}
+                      placeholder="123"
+                      placeholderTextColor="#B0B0B0"
+                      keyboardType="number-pad"
+                      maxLength={5}
+                    />
                   </View>
-                  <View style={styles.inputGroupHalf}>
+                  <View style={[styles.inputGroupHalf, { flexDirection: 'row', gap: 8 }]}>
+                    <View style={styles.inputGroupQuarter}>
+                      <Text style={[styles.label, styles.sublabel]}>Piso</Text>
+                      <TextInput
+                        style={styles.inputTiny}
+                        value={floor}
+                        onChangeText={handleFloorChange}
+                        placeholder="1"
+                        placeholderTextColor="#B0B0B0"
+                        keyboardType="number-pad"
+                        maxLength={2}
+                      />
+                    </View>
+                    <View style={styles.inputGroupQuarter}>
                     <Text style={[styles.label, styles.sublabel]}>Dpto</Text>
-                    <View style={styles.inputSmall} />
+                      <TextInput
+                        style={styles.inputTiny}
+                        value={apartment}
+                        onChangeText={setApartment}
+                        placeholder="A"
+                        placeholderTextColor="#B0B0B0"
+                      />
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
+          </View>
 
-        <View style={styles.buttonRow}>
-          <View style={[styles.actionButton, styles.resetButton]}>
-            <Icon name="refresh" size={20} color="#C62828" />
-            <Text style={[styles.buttonText, styles.resetText]}>Limpiar</Text>
-          </View>
-          <View style={styles.actionButton}>
-            <Icon name="content-save" size={20} color="#fff" />
-            <Text style={styles.buttonText}>Guardar</Text>
-          </View>
-          <View style={styles.actionButton}>
-            <Icon name="share-variant" size={20} color="#fff" />
-            <Text style={styles.buttonText}>Compartir</Text>
-          </View>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={handleClear}>
+            <Icon name="eraser" size={24} color="#007AFF" />
+            <Text style={styles.buttonText}>Limpiar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.button, !isValidPhone && styles.buttonDisabled]} 
+            onPress={handleSave}
+            disabled={!isValidPhone}
+          >
+            <Icon name="content-save" size={24} color={isValidPhone ? "#007AFF" : "#B0B0B0"} />
+            <Text style={[styles.buttonText, !isValidPhone && styles.buttonTextDisabled]}>Guardar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.button, !isValidPhone && styles.buttonDisabled]}
+            onPress={handleShare}
+            disabled={!isValidPhone}
+          >
+            <Icon name="share-variant" size={24} color={isValidPhone ? "#007AFF" : "#B0B0B0"} />
+            <Text style={[styles.buttonText, !isValidPhone && styles.buttonTextDisabled]}>Compartir</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.instructionContainer}>
@@ -88,7 +329,7 @@ export default function ConfigScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#EAF6FF',
+    backgroundColor: '#EAF6FF'
   },
   contentContainer: {
     flex: 1,
@@ -102,7 +343,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     paddingTop: 36,
-    justifyContent: 'flex-start',
+    justifyContent: 'flex-start'
   },
   title: {
     fontSize: 28,
@@ -110,160 +351,33 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     textAlign: 'center',
     marginBottom: 24,
-    marginTop: 0,
+    marginTop: 0
   },
-  subtitle: {
-    fontSize: 18,
-    color: '#48484A',
-    textAlign: 'center',
-    marginBottom: 12,
-    marginTop: 0,
-    fontWeight: '500',
-  },
-  placeholderContainer: {
-    display: 'none',
-  },
-  inputPlaceholder: {
-    width: '85%',
-    height: 40,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 8,
-    marginBottom: 18,
-  },
-  checkPlaceholder: {
-    width: 120,
-    height: 24,
-    backgroundColor: '#D1D1D6',
-    borderRadius: 12,
-    marginLeft: 18
-    ,
-  },
-  qrPlaceholder: {
-    width: 200,
-    height: 200,
-    backgroundColor: '#F3F3F3',
-    borderRadius: 24,
+  qrContainer: {
+    width: 220,
+    height: 220,
     marginBottom: 32,
-    borderWidth: 2,
-    borderColor: '#B0B0B0',
     alignSelf: 'center',
-  },
-  inputPhone: {
-    width: '90%',
-    height: 44,
+    position: 'relative',
     backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#007AFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    width: '90%',
-    marginBottom: 12,
-    justifyContent: 'flex-start',
-  },
-  label: {
-    fontWeight: 'bold',
-    color: '#48484A',
-    fontSize: 15,
-    flex: 1,
-  },
-  checkRow: {
-    flexDirection: 'row',
+    borderRadius: 24,
+    padding: 8,
     alignItems: 'center',
+    justifyContent: 'center'
   },
-  inputAddress: {
-    width: '100%',
-    height: 48,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: '#B0B0B0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  inputContainer: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  inputSmallContainer: {
-    width: '48%',
-  },
-  inputSmall: {
-    width: '100%',
-    height: 48,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: '#B0B0B0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '90%',
-    marginTop: 32,
-    marginBottom: 24,
-  },
-  actionButton: {
-    width: '30%',
-    height: 40,
-    borderRadius: 8,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#6C63FF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    gap: 8,
-  },
-  resetButton: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#C62828',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  resetText: {
-    color: '#C62828',
-  },
-  checkLabel: {
-    color: '#007AFF',
-    fontSize: 13,
-    fontWeight: '500',
-    marginLeft: 2,
-    marginRight: 8,
-  },
-  addressSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '90%',
-    marginBottom: 12,
-    justifyContent: 'space-between',
-    marginTop: 8,
+  qrOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 24,
+    zIndex: 1
   },
   groupWrapper: {
     width: '90%',
-    marginTop: 16,
+    marginTop: 16
   },
   labelWrapper: {
     position: 'absolute',
@@ -271,14 +385,14 @@ const styles = StyleSheet.create({
     left: 16,
     zIndex: 1,
     backgroundColor: '#fff',
-    paddingHorizontal: 8,
+    paddingHorizontal: 8
   },
   groupContainer: {
     width: '100%',
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 12,
-    paddingTop: 16,
+    padding: 8,
+    paddingTop: 12,
     borderWidth: 1,
     borderColor: '#e0e0e0',
     shadowColor: '#000',
@@ -288,14 +402,46 @@ const styles = StyleSheet.create({
     elevation: 2,
     justifyContent: 'center',
     alignItems: 'center',
-    minHeight: 80,
+    minHeight: 64
+  },
+  inputPhone: {
+    width: '90%',
+    height: 56,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#48484A',
+    textAlign: 'center',
+    borderWidth: 0
+  },
+  inputError: {
+    borderColor: 'transparent',
+    backgroundColor: 'rgba(255, 59, 48, 0.05)'
   },
   addressGroupContainer: {
-    marginTop: 16,
+    marginTop: 16
   },
-  labelContainer: {
+  addressContent: {
     width: '100%',
-    paddingLeft: 0,
+    marginTop: 0
+  },
+  addressInputsContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingHorizontal: 16
+  },
+  inputGroup: {
+    width: '90%',
+    marginBottom: 16,
+    position: 'relative'
+  },
+  label: {
+    fontWeight: 'bold',
+    color: '#48484A',
+    fontSize: 15
   },
   sublabel: {
     fontSize: 14,
@@ -306,62 +452,119 @@ const styles = StyleSheet.create({
     top: -8,
     backgroundColor: '#fff',
     paddingHorizontal: 4,
-    zIndex: 1,
+    zIndex: 1
   },
-  checkRowTop: {
-    marginTop: 0,
-    alignSelf: 'flex-end',
-    marginRight: 16,
-  },
-  directionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    justifyContent: 'space-between',
-  },
-  addressContent: {
+  inputAddress: {
     width: '100%',
-    marginTop: 0,
-  },
-  addressInputsContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  inputGroup: {
-    width: '90%',
-    marginBottom: 8,
-    position: 'relative',
-  },
-  inputGroupHalf: {
-    width: '47%',
-    position: 'relative',
+    height: 48,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#B0B0B0',
+    fontSize: 24,
+    paddingLeft: 16
   },
   rowInputs: {
     flexDirection: 'row',
     width: '90%',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginTop: 16,
+    marginTop: 16
+  },
+  inputGroupHalf: {
+    width: '47%',
+    position: 'relative'
+  },
+  inputSmall: {
+    width: '100%',
+    height: 48,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#B0B0B0',
+    fontSize: 24,
+    paddingLeft: 16
+  },
+  inputGroupQuarter: {
+    width: '47%',
+    position: 'relative'
+  },
+  inputTiny: {
+    width: '100%',
+    height: 48,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#B0B0B0',
+    fontSize: 24,
+    paddingLeft: 16,
+    textAlign: 'center'
+  },
+  directionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    justifyContent: 'flex-start'
+  },
+  checkLabel: {
+    color: '#007AFF',
+    fontSize: 13,
+    fontWeight: '500',
+    marginLeft: 2
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '90%',
+    marginTop: 32,
+    marginBottom: 24
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+    minWidth: 100
+  },
+  buttonText: {
+    color: '#007AFF',
+    fontSize: 15,
+    fontWeight: '600',
+    marginLeft: 4
+  },
+  buttonDisabled: {
+    opacity: 0.5,
+    backgroundColor: '#f8f8f8'
+  },
+  buttonTextDisabled: {
+    color: '#999'
   },
   instructionContainer: {
     width: '90%',
     backgroundColor: '#EAF6FF',
     borderRadius: 12,
     paddingVertical: 16,
-    marginTop: 8,
+    marginTop: 8
   },
   instructionTitle: {
     color: '#007AFF',
     fontWeight: 'bold',
     fontSize: 18,
     marginBottom: 2,
-    paddingLeft: '5%',
+    paddingLeft: '5%'
   },
   instructionText: {
     color: '#48484A',
     fontSize: 14,
     lineHeight: 22,
-    paddingLeft: '5%',
-  },
+    paddingLeft: '5%'
+  }
 }); 
