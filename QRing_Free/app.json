@@ -1,12 +1,11 @@
 {
   "expo": {
-    "name": "QRing_Call",
-    "slug": "QRing_Call",
+    "name": "QRing_Free",
+    "slug": "QRing_Free",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -19,10 +18,18 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.bdileo.qringfree",
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "2a7dea3f-1335-4be7-bd3f-2a655ea32568"
+      }
     }
   }
 }
